@@ -20,6 +20,8 @@ main {
 main section {
     width: 100%;
     padding: var(--padding-2xl);
+    display: flex;
+    gap: var(--gutter-lg);
 }
 
 .btn {
@@ -50,8 +52,14 @@ main section .left {
     align-items: center;
 }
 
-main section right {
+main section .right {
     width: 30%;
+    background-color: var(--bg-secondary-color);
+    padding: var(--padding-lg);
+    border-radius: var(--border-radius-lg);
+    display: flex;
+    flex-direction: column;
+    gap: var(--gutter-md);
 }
 
 main section .left .top {
@@ -85,4 +93,14 @@ main section .left .bottom .placeholder i {
 
 main section .left .bottom .placeholder p {
     font-size: var(--font-size-lg);
+}
+
+main section .right .filter {
+    width: 100%;
+}
+
+main section .right .filter input {
+    width: 100%;
+    outline: none;
+    margin-top: var(--margin-sm);
 }
