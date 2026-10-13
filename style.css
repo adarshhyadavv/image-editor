@@ -44,6 +44,11 @@ main section {
     color: var(--text-primary-color);
 }
 
+#download-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
 main section .left {
     display: flex;
     flex-direction: column;
@@ -131,4 +136,11 @@ main section .right .filter input::-webkit-slider-thumb {
 canvas {
     max-width: 90%;
     max-height: 80vh;
+    display: none;
+}
+
+.presets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--gutter-sm);
 }
