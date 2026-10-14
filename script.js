@@ -1,4 +1,7 @@
-let filters = {
+/* -------- FILTER CONFIGURATION -------- */
+
+// Default values and ranges for all image filters
+const defaultFilters = {
     brightness : {
         value : 100,
         min : 0,
@@ -53,20 +56,33 @@ let filters = {
         max : 100,
         unit : "%"
     }
-}
+};
 
+// Stores the current filter values
+let filters = structuredClone(defaultFilters);
+
+/* -------- DOM ELEMENTS -------- */
+
+// Canvas elements
 const imageCanvas = document.querySelector("#image-canvas");
 const imgInput = document.querySelector("#image-input");
 const canvasCtx = imageCanvas.getContext("2d");
+
+// Control buttons
 const resetButton = document.querySelector("#reset-btn");
 const downloadButton = document.querySelector("#download-btn");
+
+// Filter and preset containers
 const presetsContainer = document.querySelector(".presets");
-let file = null;
+
+// Stores the currently selected image
 let image = null;
 
 const filtersContainer = document.querySelector(".filters");
 
+/* -------- FILTER CREATION -------- */
 
+// Creates an individual filter slider
 function createFilterElement(name, unit = "%", value, min, max) {
     const div = document.createElement("div");
     div.classList.add("filter");
@@ -84,6 +100,7 @@ function createFilterElement(name, unit = "%", value, min, max) {
     div.appendChild(p);
     div.appendChild(input);
 
+    // Update the filter value when the slider changes
     input.addEventListener("input" , (event) => {
         filters[name].value = input.value;
         applyFilters();
@@ -92,6 +109,7 @@ function createFilterElement(name, unit = "%", value, min, max) {
     return div;
 }
 
+// Generates sliders for all available filters
 function createFilters() {
     Object.keys(filters).forEach(filter => {
         const filterElement = createFilterElement(filter ,filters[filter].unit , filters[filter].value , filters[filter].min , filters[filter].max);
@@ -99,28 +117,51 @@ function createFilters() {
     })
 }
 
+// Create filter controls when the page loads
 createFilters();
 
+/* -------- IMAGE UPLOAD -------- */
+
+// Loads the selected image into the canvas
 imgInput.addEventListener("change", (event) => {
     const file = event.target.files[0];
     const imagePlaceHolder = document.querySelector(".placeholder");
+
+    // Display the canvas and hide the placeholder
     imageCanvas.style.display = 'block';
     imagePlaceHolder.style.display = "none";
 
+    // Create an image object from the selected file
     const img = new Image();
     img.src = URL.createObjectURL(file);
 
     img.onload = () => {
         image = img;
+
+        // Set canvas dimensions to match the uploaded image
         imageCanvas.width = img.width;
         imageCanvas.height = img.height;
+
+        // Draw the uploaded image on the canvas
         canvasCtx.drawImage(img, 0, 0);
+
+        // Enable downloading after an image is loaded
         downloadButton.disabled = false;
     }
 })
 
+/* -------- APPLY IMAGE FILTERS -------- */
+
+// Applies the current filter values to the uploaded image
 function applyFilters() {
+
+    // Prevent applying filters when no image is selected
+    if (!image) return;
+
+    // Clear the previous canvas content
     canvasCtx.clearRect(0, 0, imageCanvas.width, imageCanvas.height);
+
+    // Combine all filter values into a canvas filter string
     canvasCtx.filter = `
     brightness(${filters.brightness.value}${filters.brightness.unit})
     contrast(${filters.contrast.value}${filters.contrast.unit})
@@ -132,80 +173,45 @@ function applyFilters() {
     opacity(${filters.opacity.value}${filters.opacity.unit})
     invert(${filters.invert.value}${filters.invert.unit})
     `.trim();
+
+    // Redraw the original image with the updated filters
     canvasCtx.drawImage(image, 0, 0);
 }
 
+/* -------- RESET FILTERS -------- */
+
+// Restores all filters to their default values
 resetButton.addEventListener("click", () => {
-    filters = {
-        brightness : {
-            value : 100,
-            min : 0,
-            max : 200,
-            unit : "%"
-        },
-        contrast : {
-            value : 100,
-            min : 0,
-            max : 200,
-            unit : "%"
-        },
-        saturation : {
-            value : 100,
-            min : 0,
-            max : 200,
-            unit : "%"
-        },
-        hueRotation : {
-            value : 0,
-            min : 0,
-            max : 360,
-            unit : "deg"
-        },
-        blur : {
-            value : 0,
-            min : 0,
-            max : 20,
-            unit : "px"
-        },
-        grayscale : {
-            value : 0,
-            min : 0,
-            max : 100,
-            unit : "%"
-        },
-        sepia : {
-            value : 0,
-            min : 0,
-            max : 100,
-            unit : "%"
-        },
-        opacity : {
-            value : 100,
-            min : 0,
-            max : 100,
-            unit : "%"
-        },
-        invert : {
-            value : 0,
-            min : 0,
-            max : 100,
-            unit : "%"
-        }
-    }
+
+    // Create a fresh copy of the default filter configuration
+    filters = structuredClone(defaultFilters);
+
+    // Apply the default filters to the image
     applyFilters();
+
+    // Recreate sliders with their default values
     filtersContainer.innerHTML = "";
     createFilters();
-})
+});
 
+/* -------- DOWNLOAD IMAGE -------- */
 
+// Downloads the edited canvas as a PNG image
 downloadButton.addEventListener("click", () => {
+
+    // Prevent downloading when no image is selected
     if (!image) return;
     const link = document.createElement("a");
     link.download = "edited-image.png";
+
+    // Convert canvas content into a downloadable image
     link.href = imageCanvas.toDataURL();
     link.click();
 })
 
+/* -------- FILTER PRESETS -------- */
+
+// Predefined combinations of filter values
 const presets = {
 
     drama: {
@@ -341,22 +347,29 @@ const presets = {
     }
 };
 
+/* -------- PRESET BUTTON CREATION -------- */
+
+// Creates a button for every predefined filter preset
 Object.keys(presets).forEach(presetName => {
     const presetButton = document.createElement("button");
     presetButton.classList.add("btn");
     presetButton.innerText = presetName;
     presetsContainer.appendChild(presetButton);
 
+    // Apply the selected preset when its button is clicked
     presetButton.addEventListener('click', () => {
 
         const preset = presets[presetName];
 
+        // Update all filter values using the selected preset
         Object.keys(preset).forEach(filterName => {
             filters[filterName].value  = preset[filterName];
         })
 
+        // Apply the preset to the uploaded image
         applyFilters();
 
+        // Recreate sliders to reflect the selected preset values
         filtersContainer.innerHTML = "";
         createFilters();
     })
